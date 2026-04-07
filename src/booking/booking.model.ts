@@ -18,7 +18,10 @@ export class Booking extends Document {
   })
   date: Date;
 
-  @Prop({ default: null })
+  @Prop({
+    type: Date, // Явно указываем тип
+    default: null,
+  })
   deletedAt: Date | null;
 }
 
