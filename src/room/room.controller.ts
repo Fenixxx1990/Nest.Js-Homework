@@ -43,15 +43,4 @@ export class RoomController {
   remove(@Param("id") id: string) {
     return this.roomService.remove(id);
   }
-
-  @Get(":id/availability")
-  async checkRoomAvailability(@Param("id") roomId: string) {
-    const isBooked = await this.roomService.isRoomBooked(roomId);
-
-    return {
-      roomId,
-      available: !isBooked,
-      message: isBooked ? "Room is currently booked" : "Room is available for booking",
-    };
-  }
 }

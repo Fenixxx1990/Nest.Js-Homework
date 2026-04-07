@@ -3,15 +3,11 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Room, RoomDocument } from "./room.model";
 import { CreateRoomDto } from "./dto/create-room.dto";
-import { BookingService } from "../booking/booking.service";
 import { UpdateRoomDto } from "./dto/update-room.dto";
 
 @Injectable()
 export class RoomService {
-  constructor(
-    @InjectModel(Room.name) private roomModel: Model<RoomDocument>,
-    private readonly bookingService: BookingService
-  ) {}
+  constructor(@InjectModel(Room.name) private roomModel: Model<RoomDocument>) {}
 
   async create(createRoomDto: CreateRoomDto): Promise<Room> {
     // Проверка уникальности номера комнаты
@@ -72,14 +68,5 @@ export class RoomService {
     }
 
     return { message: "Room deleted successfully" };
-  }
-
-  /**
-   * Проверяет, забронирована ли комната (есть ли активные бронирования)
-   * @param roomId - ID комнаты для проверки
-   * @returns boolean - true, если комната забронирована; false, если свободна
-   */
-  async isRoomBooked(roomId: string): Promise<boolean> {
-    return this.bookingService.isRoomBooked(roomId);
   }
 }

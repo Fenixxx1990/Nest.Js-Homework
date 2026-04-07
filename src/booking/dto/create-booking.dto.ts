@@ -1,4 +1,4 @@
-import { IsDate, IsMongoId } from "class-validator";
+import { IsMongoId, IsDate } from "class-validator";
 
 export class CreateBookingDto {
   @IsMongoId()

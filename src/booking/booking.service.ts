@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { Booking, BookingDocument } from "./booking.model";
 import { CreateBookingDto } from "./dto/create-booking.dto";
 import { UpdateBookingDto } from "./dto/update-booking.dto";
@@ -13,18 +13,15 @@ export class BookingService {
   ) {}
 
   async create(createBookingDto: CreateBookingDto): Promise<Booking> {
-    const existingBooking = await this.bookingModel.findOne({
-      roomId: createBookingDto.roomId,
-      date: createBookingDto.date,
-      deletedAt: null,
-    });
-
-    if (existingBooking) {
-      throw new ConflictException("Booking already exists for this room and date");
+    try {
+      const createdBooking = new this.bookingModel(createBookingDto);
+      return await createdBooking.save();
+    } catch (error: unknown) {
+      if (error instanceof Error && "code" in error && error.code === 11000) {
+        throw new ConflictException("Booking already exists for this room and date");
+      }
+      throw error;
     }
-
-    const createdBooking = new this.bookingModel(createBookingDto);
-    return createdBooking.save();
   }
 
   async findAll(): Promise<Booking[]> {
@@ -45,6 +42,19 @@ export class BookingService {
   }
 
   async update(id: string, updateBookingDto: UpdateBookingDto): Promise<Booking> {
+    if (updateBookingDto.roomId || updateBookingDto.date) {
+      const existingBooking = await this.bookingModel.findOne({
+        roomId: updateBookingDto.roomId,
+        date: updateBookingDto.date,
+        _id: { $ne: new Types.ObjectId(id) },
+        deletedAt: null,
+      });
+
+      if (existingBooking) {
+        throw new ConflictException("Cannot update: booking already exists for this room and date");
+      }
+    }
+
     const updatedBooking = await this.bookingModel.findByIdAndUpdate(id, updateBookingDto, {
       new: true,
     });
@@ -76,6 +86,6 @@ export class BookingService {
       deletedAt: null,
     });
 
-    return !!existingBooking; // преобразуем в boolean: если документ найден — true, иначе false
+    return !!existingBooking;
   }
 }
