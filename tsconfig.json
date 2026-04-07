@@ -14,8 +14,10 @@
     "sourceMap": true,
     "outDir": "./dist",
     "paths": {
-      "*": ["./*"],
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@app/*": ["./src/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@common/*": ["./src/common/*"]
     },
     "incremental": true,
     "skipLibCheck": true,
@@ -25,6 +27,7 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "exactOptionalPropertyTypes": false
   }
 }
