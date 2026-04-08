@@ -1,9 +1,9 @@
 import { IsMongoId, IsDate } from "class-validator";
 
 export class CreateBookingDto {
-  @IsMongoId()
+  // @IsMongoId()
   roomId: string;
 
-  @IsDate()
+  // @IsDate()
   date: Date;
 }
