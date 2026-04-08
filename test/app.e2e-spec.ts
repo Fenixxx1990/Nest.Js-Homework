@@ -7,10 +7,31 @@ import { AppModule } from "./../src/app.module";
 import type { CreateRoomDto } from "@/room/dto/create-room.dto";
 import type { Room } from "@/room/room.model";
 import type { CreateBookingDto } from "@/booking/dto/create-booking.dto";
+import { Types } from "mongoose";
+import type { Booking } from "@/booking/booking.model";
+
+const fixRoomIdforBooking = new Types.ObjectId().toString();
+const fixBookingIdforRoom = new Types.ObjectId().toString();
+
+const createBookingDto: CreateBookingDto = {
+  roomId: fixRoomIdforBooking,
+  date: new Date(),
+};
+
+const UpdateCreateBookingDto: CreateBookingDto = {
+  roomId: new Types.ObjectId().toString(),
+  date: new Date(),
+};
 
 const testRoomDto: CreateRoomDto = {
   roomNumber: "202",
   type: "для 2",
+  hasSeaView: true,
+};
+
+const updateTestRoomDto: CreateRoomDto = {
+  roomNumber: "202",
+  type: "для 3",
   hasSeaView: true,
 };
 
@@ -43,23 +64,6 @@ describe("AppController (e2e)", () => {
     return request(app.getHttpServer()).post("/rooms").send().expect(400);
   });
 
-  it("/bookings (POST) - success", async () => {
-    const createBookingDto: CreateBookingDto = {
-      roomId: createRoomId,
-      date: new Date(),
-    };
-
-    const response = await request(app.getHttpServer())
-      .post("/bookings")
-      .send(createBookingDto)
-      .expect(201);
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    createBookingId = response.body._id as string;
-    console.log(createBookingId);
-    expect(createBookingId).toBeDefined();
-  });
-
   it("/rooms/:id (GET) - success", async () => {
     const response = await request(app.getHttpServer()).get(`/rooms/${createRoomId}`).expect(200);
 
@@ -68,11 +72,7 @@ describe("AppController (e2e)", () => {
   });
 
   it("/rooms/:id (GET) - faild", async () => {
-    return request(app.getHttpServer()).get(`/rooms/${createBookingId}`).expect(404);
-  });
-
-  it("/bookings/:id (GET) - faild", async () => {
-    return request(app.getHttpServer()).get(`/bookings/${createRoomId}`).expect(404);
+    return request(app.getHttpServer()).get(`/rooms/${fixBookingIdforRoom}`).expect(404);
   });
 
   it("/rooms (GET) - success", async () => {
@@ -80,6 +80,32 @@ describe("AppController (e2e)", () => {
 
     const result = response.body as Room[];
     expect(result.length).toBe(1);
+  });
+
+  it("/rooms/:id (PUT) - success", async () => {
+    const response = await request(app.getHttpServer())
+      .put(`/rooms/${createRoomId}`)
+      .send(updateTestRoomDto)
+      .expect(200);
+
+    const result = response.body as Room;
+    console.log(result);
+    expect(result.type).toBe(updateTestRoomDto.type);
+  });
+
+  it("/rooms/:id (DELET) - success", async () => {
+    return request(app.getHttpServer()).delete(`/rooms/${createRoomId}`).expect(200);
+  });
+
+  it("/bookings (POST) - success", async () => {
+    const response = await request(app.getHttpServer())
+      .post("/bookings")
+      .send(createBookingDto)
+      .expect(201);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    createBookingId = response.body._id as string;
+    expect(createBookingId).toBeDefined();
   });
 
   it("/bookings/:id (GET) - success", async () => {
@@ -91,15 +117,29 @@ describe("AppController (e2e)", () => {
     expect(result._id).toBe(createBookingId);
   });
 
+  it("/bookings/:id (GET) - faild", async () => {
+    return request(app.getHttpServer())
+      .get(`/bookings/${new Types.ObjectId().toString()}`)
+      .expect(404);
+  });
+
   it("/bookings (GET) - success", async () => {
     const response = await request(app.getHttpServer()).get("/bookings").expect(200);
 
     const result = response.body as Room[];
+    console.log(result);
     expect(result.length).toBe(1);
   });
 
-  it("/rooms/:id (DELET) - success", async () => {
-    return request(app.getHttpServer()).delete(`/rooms/${createRoomId}`).expect(200);
+  it("/bookings/:id (PUT) - success", async () => {
+    const response = await request(app.getHttpServer())
+      .put(`/bookings/${createBookingId}`)
+      .send(UpdateCreateBookingDto)
+      .expect(200);
+
+    const result = response.body as Booking;
+    console.log(result);
+    expect(result.roomId).toBe(UpdateCreateBookingDto.roomId);
   });
 
   it("/bookings/:id (DELET) - success", async () => {
