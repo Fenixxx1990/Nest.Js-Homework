@@ -1,6 +1,6 @@
 import type { TestingModule } from "@nestjs/testing";
 import { Test } from "@nestjs/testing";
-import type { INestApplication } from "@nestjs/common";
+import { ValidationPipe, type INestApplication } from "@nestjs/common";
 import request from "supertest";
 import type { App } from "supertest/types";
 import { AppModule } from "./../src/app.module";
@@ -46,6 +46,7 @@ describe("AppController (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
   });
 
@@ -61,7 +62,10 @@ describe("AppController (e2e)", () => {
   });
 
   it("/rooms (POST) - faild", async () => {
-    return request(app.getHttpServer()).post("/rooms").send().expect(400);
+    return request(app.getHttpServer())
+      .post("/rooms")
+      .send({ ...testRoomDto, hasSeaView: "asd" })
+      .expect(400);
   });
 
   it("/rooms/:id (GET) - success", async () => {
@@ -79,6 +83,7 @@ describe("AppController (e2e)", () => {
     const response = await request(app.getHttpServer()).get("/rooms").expect(200);
 
     const result = response.body as Room[];
+    console.log(result);
     expect(result.length).toBe(1);
   });
 
@@ -89,7 +94,6 @@ describe("AppController (e2e)", () => {
       .expect(200);
 
     const result = response.body as Room;
-    console.log(result);
     expect(result.type).toBe(updateTestRoomDto.type);
   });
 
@@ -103,9 +107,18 @@ describe("AppController (e2e)", () => {
       .send(createBookingDto)
       .expect(201);
 
+    console.log(response.body);
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     createBookingId = response.body._id as string;
     expect(createBookingId).toBeDefined();
+  });
+
+  it("/bookings (POST) - fail", () => {
+    return request(app.getHttpServer())
+      .post("/bookings")
+      .send({ ...createBookingDto, date: "q2341" })
+      .expect(400);
   });
 
   it("/bookings/:id (GET) - success", async () => {
@@ -138,7 +151,6 @@ describe("AppController (e2e)", () => {
       .expect(200);
 
     const result = response.body as Booking;
-    console.log(result);
     expect(result.roomId).toBe(UpdateCreateBookingDto.roomId);
   });
 
