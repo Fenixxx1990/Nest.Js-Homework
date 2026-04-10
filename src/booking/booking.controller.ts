@@ -8,12 +8,17 @@ import {
   Body,
   UsePipes,
   ValidationPipe,
+  UseGuards,
 } from "@nestjs/common";
 import { BookingService } from "./booking.service";
 import { CreateBookingDto } from "./dto/create-booking.dto";
 import { UpdateBookingDto } from "./dto/update-booking.dto";
+import { RolesGuard } from "@/user/guards/roles.guard";
+import { AuthGuard } from "@nestjs/passport";
+import { Roles } from "@/user/decorators/roles.decorator";
 
 @Controller("bookings")
+@UseGuards(AuthGuard("jwt"), RolesGuard)
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
@@ -40,6 +45,7 @@ export class BookingController {
   }
 
   @Delete(":id")
+  @Roles("admin")
   remove(@Param("id") id: string) {
     return this.bookingService.remove(id);
   }

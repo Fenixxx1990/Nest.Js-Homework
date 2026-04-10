@@ -1,4 +1,4 @@
-import { UserModel } from "@/user/user.model";
+import { UserDocument } from "@/user/user.model";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
@@ -14,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate({ email }: Pick<UserModel, "email">) {
-    return email;
+  validate({ _id, email, role }: UserDocument) {
+    return { _id, email, role };
   }
 }
