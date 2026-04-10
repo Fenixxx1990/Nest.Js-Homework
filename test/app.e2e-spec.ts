@@ -10,8 +10,8 @@ import type { CreateBookingDto } from "@/booking/dto/create-booking.dto";
 import { Types } from "mongoose";
 import type { Booking } from "@/booking/booking.model";
 
-const fixRoomIdforBooking = new Types.ObjectId().toString();
-const fixBookingIdforRoom = new Types.ObjectId().toString();
+const fixRoomIdforBooking = new Types.ObjectId();
+const fixBookingIdforRoom = new Types.ObjectId();
 
 const createBookingDto: CreateBookingDto = {
   roomId: fixRoomIdforBooking,
@@ -19,7 +19,7 @@ const createBookingDto: CreateBookingDto = {
 };
 
 const UpdateCreateBookingDto: CreateBookingDto = {
-  roomId: new Types.ObjectId().toString(),
+  roomId: new Types.ObjectId(),
   date: new Date(),
 };
 
@@ -76,14 +76,13 @@ describe("AppController (e2e)", () => {
   });
 
   it("/rooms/:id (GET) - faild", async () => {
-    return request(app.getHttpServer()).get(`/rooms/${fixBookingIdforRoom}`).expect(404);
+    return request(app.getHttpServer()).get(`/rooms/${fixBookingIdforRoom.toString()}`).expect(404);
   });
 
   it("/rooms (GET) - success", async () => {
     const response = await request(app.getHttpServer()).get("/rooms").expect(200);
 
     const result = response.body as Room[];
-    console.log(result);
     expect(result.length).toBe(1);
   });
 
@@ -106,8 +105,6 @@ describe("AppController (e2e)", () => {
       .post("/bookings")
       .send(createBookingDto)
       .expect(201);
-
-    console.log(response.body);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     createBookingId = response.body._id as string;
@@ -140,7 +137,6 @@ describe("AppController (e2e)", () => {
     const response = await request(app.getHttpServer()).get("/bookings").expect(200);
 
     const result = response.body as Room[];
-    console.log(result);
     expect(result.length).toBe(1);
   });
 
@@ -151,7 +147,7 @@ describe("AppController (e2e)", () => {
       .expect(200);
 
     const result = response.body as Booking;
-    expect(result.roomId).toBe(UpdateCreateBookingDto.roomId);
+    expect(result.roomId).toBe(UpdateCreateBookingDto.roomId.toString());
   });
 
   it("/bookings/:id (DELET) - success", async () => {
