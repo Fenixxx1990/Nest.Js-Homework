@@ -1,9 +1,10 @@
-import { IsMongoId, IsDate } from "class-validator";
+import { IsDateString, IsMongoId } from "class-validator";
+import { Types } from "mongoose";
 
 export class CreateBookingDto {
   @IsMongoId()
-  roomId: string;
+  roomId: Types.ObjectId;
 
-  @IsDate()
+  @IsDateString()
   date: Date;
 }
