@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { compare } from "bcryptjs";
 import { WRONG_PASSWORD_ERROR } from "./auth.constants";
+import { UserResponseDto } from "@/user/dto/user.response.dto";
 
 @Injectable()
 export class AuthService {
@@ -15,8 +16,8 @@ export class AuthService {
     return true;
   }
 
-  async login(email: string) {
-    const payload = { email };
+  async login({ id, email, role }: UserResponseDto) {
+    const payload = { id, email, role };
     return this.jwtService.signAsync(payload);
   }
 }

@@ -16,6 +16,7 @@ import { UpdateRoomDto } from "./dto/update-room.dto";
 import { RolesGuard } from "@/user/guards/roles.guard";
 import { AuthGuard } from "@nestjs/passport";
 import { Roles } from "@/user/decorators/roles.decorator";
+import { UserRole } from "@/user/user.model";
 
 @Controller("rooms")
 @UseGuards(AuthGuard("jwt"), RolesGuard)
@@ -23,7 +24,7 @@ export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
   @Post()
-  @Roles("admin")
+  @Roles(UserRole.ADMIN)
   @UsePipes(ValidationPipe)
   create(@Body() createRoomDto: CreateRoomDto) {
     return this.roomService.create(createRoomDto);
@@ -40,14 +41,14 @@ export class RoomController {
   }
 
   @Put(":id")
-  @Roles("admin")
+  @Roles(UserRole.ADMIN)
   @UsePipes(ValidationPipe)
   update(@Param("id") id: string, @Body() updateRoomDto: UpdateRoomDto) {
     return this.roomService.update(id, updateRoomDto);
   }
 
   @Delete(":id")
-  @Roles("admin")
+  @Roles(UserRole.ADMIN)
   remove(@Param("id") id: string) {
     return this.roomService.remove(id);
   }

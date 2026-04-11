@@ -24,7 +24,7 @@ export class AuthController {
   @Post("register")
   async register(@Body() dto: CreateUserDto) {
     const newUser = await this.userService.create(dto);
-    const token = await this.authService.login(newUser.email);
+    const token = await this.authService.login(newUser);
     return { ...newUser, token };
   }
 
@@ -38,7 +38,7 @@ export class AuthController {
     }
     const validate = await this.authService.validateUser(password, user.passwordHash);
     if (validate) {
-      return this.authService.login(email);
+      return this.authService.login(user);
     }
     throw new BadRequestException(AUTH_UNSUCCESS_ERROR);
   }

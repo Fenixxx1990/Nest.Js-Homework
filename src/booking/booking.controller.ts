@@ -49,4 +49,16 @@ export class BookingController {
   remove(@Param("id") id: string) {
     return this.bookingService.remove(id);
   }
+
+  @Get("/statistic/:monthNumber")
+  @Roles("admin")
+  getStatistic(@Param("monthNumber") monthNumber: string) {
+    const monthNum = parseInt(monthNumber, 10);
+
+    if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+      throw new Error("Month must be a number between 1 and 12");
+    }
+
+    return this.bookingService.getStatistic(monthNum);
+  }
 }
