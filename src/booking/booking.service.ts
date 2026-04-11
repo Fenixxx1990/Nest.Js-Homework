@@ -102,24 +102,24 @@ export class BookingService {
   async getStatistic(month: number) {
     return this.bookingModel
       .aggregate([
+        // Шаг 1: Фильтрация по месяцу и статусу (исключаем удалённые бронирования)
         {
           $match: {
-            $expr: { $eq: [{ $month: "$date" }, month] },
+            $expr: {
+              $eq: [{ $month: "$date" }, month],
+            },
+            deletedAt: null, // фильтруем только активные бронирования
           },
         },
+        // Шаг 2: Группировка по roomId и сбор уникальных дат
         {
           $group: {
             _id: "$roomId",
             bookedDays: { $addToSet: "$date" },
           },
         },
-        // Диагностика: выводим _id перед lookup
-        {
-          $addFields: {
-            debug_roomId: "$_id",
-            debug_type: { $type: "$_id" },
-          },
-        },
+        // Шаг 3: Соединение с коллекцией rooms для получения названия комнаты
+
         {
           $addFields: {
             roomIdAsObjectId: { $toObjectId: "$_id" },
@@ -133,21 +133,27 @@ export class BookingService {
             as: "roomInfo",
           },
         },
+        // Шаг 4: Разворачивание массива roomInfo в объект
         {
           $unwind: {
             path: "$roomInfo",
-            preserveNullAndEmptyArrays: true, // сохраняем документы без комнаты
+            preserveNullAndEmptyArrays: true, // сохраняем комнаты без информации
           },
         },
+        // Шаг 5: Формирование итогового результата
         {
           $project: {
             roomName: {
-              $ifNull: ["$roomInfo.roomNumber", "Номер не найден"],
+              $ifNull: [
+                "$roomInfo.roomNumber",
+                { $concat: ["Комната ID: ", { $toString: "$_id" }] },
+              ],
             },
             bookedCount: { $size: "$bookedDays" },
             _id: 0,
           },
         },
+        // Шаг 6: Сортировка по убыванию загрузки
         { $sort: { bookedCount: -1 } },
       ])
       .exec();
