@@ -14,6 +14,16 @@ export class BookingService {
 
   async create(createBookingDto: CreateBookingDto): Promise<Booking> {
     try {
+      const booking = await this.bookingModel
+        .findOne({ roomId: createBookingDto.roomId.toString(), deletedAt: null })
+        .exec();
+      if (booking) {
+        if (
+          new Date(booking.date).toDateString() === new Date(createBookingDto.date).toDateString()
+        ) {
+          throw new ConflictException("Booking already exists for this room and date");
+        }
+      }
       const createdBooking = new this.bookingModel(createBookingDto);
       return await createdBooking.save();
     } catch (error: unknown) {
@@ -25,7 +35,7 @@ export class BookingService {
   }
 
   async findAll(): Promise<Booking[]> {
-    return this.bookingModel.find({ deletedAt: null }).populate("roomId").exec();
+    return this.bookingModel.find({ deletedAt: null }).exec();
   }
 
   async findOne(id: string): Promise<Booking> {
@@ -87,5 +97,65 @@ export class BookingService {
     });
 
     return !!existingBooking;
+  }
+
+  async getStatistic(month: number) {
+    return this.bookingModel
+      .aggregate([
+        // Шаг 1: Фильтрация по месяцу и статусу (исключаем удалённые бронирования)
+        {
+          $match: {
+            $expr: {
+              $eq: [{ $month: "$date" }, month],
+            },
+            deletedAt: null, // фильтруем только активные бронирования
+          },
+        },
+        // Шаг 2: Группировка по roomId и сбор уникальных дат
+        {
+          $group: {
+            _id: "$roomId",
+            bookedDays: { $addToSet: "$date" },
+          },
+        },
+        // Шаг 3: Соединение с коллекцией rooms для получения названия комнаты
+
+        {
+          $addFields: {
+            roomIdAsObjectId: { $toObjectId: "$_id" },
+          },
+        },
+        {
+          $lookup: {
+            from: "rooms",
+            localField: "roomIdAsObjectId",
+            foreignField: "_id",
+            as: "roomInfo",
+          },
+        },
+        // Шаг 4: Разворачивание массива roomInfo в объект
+        {
+          $unwind: {
+            path: "$roomInfo",
+            preserveNullAndEmptyArrays: true, // сохраняем комнаты без информации
+          },
+        },
+        // Шаг 5: Формирование итогового результата
+        {
+          $project: {
+            roomName: {
+              $ifNull: [
+                "$roomInfo.roomNumber",
+                { $concat: ["Комната ID: ", { $toString: "$_id" }] },
+              ],
+            },
+            bookedCount: { $size: "$bookedDays" },
+            _id: 0,
+          },
+        },
+        // Шаг 6: Сортировка по убыванию загрузки
+        { $sort: { bookedCount: -1 } },
+      ])
+      .exec();
   }
 }
