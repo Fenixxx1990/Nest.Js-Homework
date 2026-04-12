@@ -1,0 +1,11 @@
+services:
+  top.api:
+    image: top-api:latest
+    container_name: top-api
+    restart: always
+    ports:
+      - 3000:3000
+    environment:
+      - MONGO_DATABASE=homework
+    volumes:
+      - ./.env:/opt/app.env
