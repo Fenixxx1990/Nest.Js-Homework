@@ -16,16 +16,23 @@ import { UpdateBookingDto } from "./dto/update-booking.dto";
 import { RolesGuard } from "@/user/guards/roles.guard";
 import { AuthGuard } from "@nestjs/passport";
 import { Roles } from "@/user/decorators/roles.decorator";
+import { TelegramService } from "@/telegram/telegram.service";
 
 @Controller("bookings")
 @UseGuards(AuthGuard("jwt"), RolesGuard)
 export class BookingController {
-  constructor(private readonly bookingService: BookingService) {}
+  constructor(
+    private readonly bookingService: BookingService,
+    private readonly telegramService: TelegramService
+  ) {}
 
   @Post()
   @UsePipes(ValidationPipe)
-  create(@Body() createBookingDto: CreateBookingDto) {
-    return this.bookingService.create(createBookingDto);
+  async create(@Body() createBookingDto: CreateBookingDto) {
+    const createBooking = this.bookingService.create(createBookingDto);
+    const message = `Комната ${createBookingDto.roomId.toString()} забронирована ${createBookingDto.date.toString()} числа`;
+    await this.telegramService.sendMessage(message);
+    return createBooking;
   }
 
   @Get()
@@ -45,9 +52,11 @@ export class BookingController {
   }
 
   @Delete(":id")
-  @Roles("admin")
-  remove(@Param("id") id: string) {
-    return this.bookingService.remove(id);
+  async remove(@Param("id") id: string) {
+    const deletBooking = this.bookingService.remove(id);
+    const message = `Бронирование ${id} отменено ${new Date().toDateString()} числа`;
+    await this.telegramService.sendMessage(message);
+    return deletBooking;
   }
 
   @Get("/statistic/:monthNumber")
