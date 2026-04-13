@@ -8,6 +8,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { getMongoConfig } from "./configs/mongo.config";
 import { UserModule } from "./user/user.module";
 import { AuthModule } from "./auth/auth.module";
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AuthModule } from "./auth/auth.module";
     }),
     UserModule,
     AuthModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
