@@ -1,4 +1,4 @@
-import { IsString, IsBoolean } from "class-validator";
+import { IsString, IsBoolean, IsUrl, IsArray } from "class-validator";
 
 export class CreateRoomDto {
   @IsString()
@@ -9,4 +9,9 @@ export class CreateRoomDto {
 
   @IsBoolean()
   hasSeaView: boolean;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsUrl({}, { each: true })
+  images: string[];
 }

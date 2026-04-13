@@ -4,9 +4,14 @@ import { RoomController } from "./room.controller";
 import { RoomService } from "./room.service";
 import { Room, RoomSchema } from "./room.model";
 import { JwtModule } from "@nestjs/jwt";
+import { FilesModule } from "@/files/files.module";
 
 @Module({
-  imports: [JwtModule, MongooseModule.forFeature([{ name: Room.name, schema: RoomSchema }])],
+  imports: [
+    FilesModule,
+    JwtModule,
+    MongooseModule.forFeature([{ name: Room.name, schema: RoomSchema }]),
+  ],
   controllers: [RoomController],
   providers: [RoomService],
   exports: [RoomService],
