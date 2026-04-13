@@ -13,6 +13,9 @@ export class Room extends Document {
 
   @Prop({ default: false })
   hasSeaView: boolean;
+
+  @Prop({ type: [String] })
+  images: string[];
 }
 
 export const RoomSchema = SchemaFactory.createForClass(Room);
